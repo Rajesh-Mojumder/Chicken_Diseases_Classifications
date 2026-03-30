@@ -1,19 +1,18 @@
-FROM python:3.8-slim-buster
+
+
+FROM python:3.8-slim-bullseye
  
 WORKDIR /app
  
-# Install system dependencies including Rust
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     curl \
     build-essential \
-    && curl https://sh.rustup.rs -sSf | sh -s -- -y \
+    rustc \
+    cargo \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
- 
-# Add Rust to PATH
-ENV PATH="/root/.cargo/bin:${PATH}"
  
 COPY . /app
  
