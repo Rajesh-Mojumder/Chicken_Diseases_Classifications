@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chicken Disease Classification</title>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
+<style>
+body {
+    background: #f8fafc;
+    font-family: 'Poppins', sans-serif;
+}
+.header {
+    text-align: center;
+    margin: 30px 0;
+}
+.header h1 { font-weight: 700; color: #1e293b; }
+.header p  { color: #64748b; }
+
+.card-custom {
+    background: #fff;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.image-part {
+    height: 300px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #f8fafc;
+}
+.image-part img {
+    width: 100%; height: 100%;
+    object-fit: cover; border-radius: 10px;
+}
+.image-placeholder { text-align: center; color: #94a3b8; }
+.image-placeholder .ph-icon { font-size: 48px; }
+.image-placeholder p { font-size: 14px; margin-top: 8px; }
+
+.btn-custom { border-radius: 10px; font-weight: 600; padding: 10px; border: none; }
+.btn-upload  { background: #2563eb; color: #fff; }
+.btn-upload:hover  { background: #1d4ed8; color: #fff; }
+.btn-predict { background: #16a34a; color: #fff; }
+.btn-predict:hover { background: #15803d; color: #fff; }
+
+/* Result box */
+.result-box {
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 20px;
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.result-placeholder { color: #94a3b8; }
+.result-placeholder .ph-icon { font-size: 40px; margin-bottom: 8px; }
+.result-placeholder p { font-size: 14px; margin: 0; }
+
+/* Result card styles */
+.result-card { width: 100%; }
+.result-icon  { font-size: 64px; margin-bottom: 6px; }
+.result-tag   { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; }
+.result-status { font-size: 34px; font-weight: 700; margin: 0 0 8px 0; }
+.result-status.healthy { color: #16a34a; }
+.result-status.sick    { color: #dc2626; }
+.result-badge {
+    display: inline-block; border-radius: 20px;
+    padding: 5px 20px; font-size: 13px; font-weight: 600; margin-bottom: 10px;
+}
+.result-badge.healthy { background: #dcfce7; color: #16a34a; }
+.result-badge.sick    { background: #fee2e2; color: #dc2626; }
+.result-desc  { font-size: 13px; color: #64748b; margin: 0; }
+
+/* About */
+.about { margin-top: 30px; margin-bottom: 80px; }
+.about h3 { font-weight: 600; }
+.about p  { color: #475569; }
+
+/* Loader */
+#loading {
+    display: none; position: fixed;
+    width: 100%; height: 100%;
+    background: rgba(255,255,255,0.75);
+    top: 0; left: 0; z-index: 9999;
+}
+.loader {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #2563eb;
+    border-radius: 50%;
+    width: 50px; height: 50px;
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Watermark */
+.watermark { position: fixed; bottom: 20px; right: 25px; text-align: right; }
+.wm-small  { margin: 0; font-size: 12px; color: #94a3b8; }
+.wm-name   { margin: 0; font-size: 18px; font-weight: 700; color: #1e293b; }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>🐔 Chicken Disease Classification</h1>
+        <p>AI-powered poultry health detection</p>
+    </div>
+
+    <!-- Main Row -->
+    <div class="row">
+
+        <!-- Upload Panel -->
+        <div class="col-md-6 mb-4">
+            <div class="card-custom text-center">
+                <div class="image-part mb-3">
+                    <div class="image-placeholder" id="imgPlaceholder">
+                        <div class="ph-icon">🖼️</div>
+                        <p>Upload a chicken image to begin</p>
+                    </div>
+                    <img id="photo" src="" style="display:none;">
+                </div>
+                <button class="btn btn-custom btn-upload w-100 mb-2" id="uload">📂 Upload Image</button>
+                <button class="btn btn-custom btn-predict w-100" id="send">🔍 Predict</button>
+                <input type="hidden" id="url" value="../predict"/>
+                <input type="file" id="fileinput" style="display:none;" accept="image/*">
+            </div>
+        </div>
+
+        <!-- Result Panel -->
+        <div class="col-md-6 mb-4">
+            <div class="card-custom h-100">
+                <h5 class="text-center mb-3">Prediction Results</h5>
+                <div class="result-box" id="result">
+                    <div class="result-placeholder">
+                        <div class="ph-icon">📊</div>
+                        <p>Results will appear here after prediction</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- About -->
+    <div class="card-custom about">
+        <h3>About This Project</h3>
+        <p>
+            The Chicken Disease Classification System is an AI-powered application that detects poultry diseases
+            using image analysis. It applies deep learning (VGG16) to classify whether a chicken is
+            <strong>Healthy</strong> or infected with <strong>Coccidiosis</strong>.
+        </p>
+        <p>
+            This system enables quick and reliable predictions, helping reduce manual inspection efforts
+            and supporting early disease detection. It demonstrates a complete ML pipeline from data
+            processing to deployment.
+        </p>
+        <ul>
+            <li>Automated disease detection</li>
+            <li>User-friendly interface</li>
+            <li>Early diagnosis support</li>
+            <li>Real-world AI implementation</li>
+        </ul>
+    </div>
+
+</div>
+
+<!-- Loader -->
+<div id="loading"><div class="loader"></div></div>
+
+<!-- Watermark -->
+<div class="watermark">
+    <p class="wm-small">Prepared by</p>
+    <p class="wm-name">Rajesh Mojumder</p>
+    
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+var base_data = "";
+
+function showResult(prediction) {
+    var isHealthy = prediction.toLowerCase() === "healthy";
+    var icon  = isHealthy ? "✅" : "⚠️";
+    var cls   = isHealthy ? "healthy" : "sick";
+    var badge = isHealthy ? "No Disease Detected" : "Disease Detected";
+    var desc  = isHealthy
+        ? "The chicken appears to be in good health. No signs of disease found."
+        : "The chicken may be infected with Coccidiosis. Please consult a veterinarian.";
+
+    $("#result").html(
+        '<div class="result-card">'
+      + '<div class="result-icon">' + icon + '</div>'
+      + '<p class="result-tag">Diagnosis Result</p>'
+      + '<p class="result-status ' + cls + '">' + prediction + '</p>'
+      + '<span class="result-badge ' + cls + '">' + badge + '</span><br>'
+      + '<p class="result-desc">' + desc + '</p>'
+      + '</div>'
+    );
+}
+
+function sendRequest(base64Data) {
+    if (!base64Data) { alert("Please upload an image first."); return; }
+    $("#loading").show();
+    $.ajax({
+        url: $("#url").val(),
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ image: base64Data }),
+        success: function(res) {
+            $("#loading").hide();
+            try {
+                showResult(res[0].image);
+            } catch(e) {
+                $("#result").html("<p style='color:red;'>Unexpected response. Try again.</p>");
+            }
+        },
+        error: function() {
+            $("#loading").hide();
+            $("#result").html("<p style='color:red;'>⚠️ Prediction failed. Please try again.</p>");
+        }
+    });
+}
+
+$("#uload").click(function() { $("#fileinput").click(); });
+
+$("#fileinput").change(function() {
+    var file = this.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var img = new Image();
+        img.onload = function() {
+            var canvas = document.createElement("canvas");
+            canvas.width = img.width; canvas.height = img.height;
+            canvas.getContext("2d").drawImage(img, 0, 0);
+            base_data = canvas.toDataURL("image/jpeg").replace(/^data:image.+;base64,/, "");
+        };
+        img.src = e.target.result;
+        $("#imgPlaceholder").hide();
+        $("#photo").attr("src", e.target.result).show();
+        $("#result").html('<div class="result-placeholder"><div class="ph-icon">📊</div><p>Click Predict to analyze</p></div>');
+    };
+    reader.readAsDataURL(file);
+});
+
+$("#send").click(function() { sendRequest(base_data); });
+</script>
+</body>
+</html>
