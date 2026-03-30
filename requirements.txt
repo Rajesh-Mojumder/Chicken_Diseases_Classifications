@@ -16,4 +16,4 @@ Flask==2.2.5
 Flask-Cors==3.0.10
 pywinpty==2.0.3
 terminado==0.17.1
--e .
+
